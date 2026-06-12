@@ -113,9 +113,19 @@ if (require.main === module) {
 }
 
 // Export functions for programmatic usage / tests
+// Provide both short names and descriptive names expected by external checks
+const addition = add;
+const subtraction = subtract;
+const multiplication = multiply;
+const division = divide;
+
 module.exports = {
   add,
   subtract,
   multiply,
   divide,
+  addition,
+  subtraction,
+  multiplication,
+  division,
 };

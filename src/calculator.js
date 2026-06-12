@@ -41,6 +41,25 @@ function divide(a, b) {
   return a / b;
 }
 
+// Additional operations requested in issue #3
+function modulo(a, b) {
+  if (b === 0) {
+    throw new Error('Modulo by zero');
+  }
+  return a % b;
+}
+
+function power(base, exponent) {
+  return Math.pow(base, exponent);
+}
+
+function squareRoot(n) {
+  if (n < 0) {
+    throw new Error('Square root of negative number');
+  }
+  return Math.sqrt(n);
+}
+
 // Helper to parse numbers and validate
 function parseNumber(value, name = 'value') {
   const n = Number(value);
@@ -64,20 +83,32 @@ const operators = {
   '/': divide,
   'divide': divide,
   '÷': divide,
+  '%': modulo,
+  'mod': modulo,
+  'modulo': modulo,
+  'pow': power,
+  '^': power,
+  'power': power,
+  '**': power,
+  'sqrt': squareRoot,
+  '√': squareRoot,
 };
 
 // CLI entrypoint
 function printUsage() {
-  console.log('Usage: node src/calculator.js <op> <a> <b>');
-  console.log('Supported operations: add(+), subtract(-), multiply(* or x), divide(/)');
+  console.log('Usage: node src/calculator.js <op> <a> <b>  OR  node src/calculator.js sqrt <a>');
+  console.log('Supported operations: add(+), subtract(-), multiply(* or x), divide(/), modulo(%), power(** or pow), sqrt');
   console.log('Examples:');
   console.log('  node src/calculator.js + 2 3');
   console.log('  node src/calculator.js divide 10 2');
+  console.log('  node src/calculator.js % 10 3');
+  console.log('  node src/calculator.js pow 2 8');
+  console.log('  node src/calculator.js sqrt 9');
 }
 
 if (require.main === module) {
   const argv = process.argv.slice(2);
-  if (argv.length !== 3) {
+  if (argv.length < 2 || argv.length > 3) {
     printUsage();
     process.exit(2);
   }
@@ -92,19 +123,39 @@ if (require.main === module) {
   }
 
   try {
-    const a = parseNumber(aRaw, 'a');
-    const b = parseNumber(bRaw, 'b');
-    const result = fn(a, b);
-    // Print as plain number, but preserve integer formatting when possible
-    if (Number.isInteger(result)) {
-      console.log(result);
+    let result;
+    // squareRoot is a unary operator
+    if (fn === squareRoot) {
+      if (aRaw === undefined) {
+        printUsage();
+        process.exit(2);
+      }
+      const a = parseNumber(aRaw, 'a');
+      result = fn(a);
     } else {
-      console.log(result);
+      if (bRaw === undefined) {
+        printUsage();
+        process.exit(2);
+      }
+      const a = parseNumber(aRaw, 'a');
+      const b = parseNumber(bRaw, 'b');
+      result = fn(a, b);
     }
+
+    // Print result
+    console.log(result);
     process.exit(0);
   } catch (err) {
     if (/division by zero/i.test(err.message)) {
       console.error('Error: division by zero');
+      process.exit(1);
+    }
+    if (/modulo by zero/i.test(err.message)) {
+      console.error('Error: modulo by zero');
+      process.exit(1);
+    }
+    if (/square root of negative/i.test(err.message)) {
+      console.error('Error: square root of negative number');
       process.exit(1);
     }
     console.error('Error:', err.message);
@@ -128,4 +179,8 @@ module.exports = {
   subtraction,
   multiplication,
   division,
+  // New operations from issue #3
+  modulo,
+  power,
+  squareRoot,
 };
